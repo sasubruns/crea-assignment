@@ -18,8 +18,11 @@ dict_from_destinations = pd.Series(input_data["commodity_destination_country"].v
 
 iso_country_dict = {**dict_from_origins, **dict_from_destinations} # Use x | y syntax? Only works in python 3.9 or greater
 
+# Separate cross border and production data
 crossborder = input_data[input_data["type"] == "crossborder"]
 production = input_data[input_data["type"] == "production"]
+
+# Get monthly gross exports, gross imports and production per commodity type, country and month
 
 monthly_gross_exports = crossborder.groupby(["commodity_origin_iso2", "commodity", "year", "month"],
                                             as_index=False).sum()
@@ -36,12 +39,22 @@ monthly_production = production.groupby(["commodity_origin_iso2", "commodity", "
 monthly_production.rename(columns={"value_m3": "production_m3", "commodity_origin_iso2": "iso2"},
                              inplace=True)
 
+# Merge export, import and production dataframes
 merged_data = pd.merge(monthly_gross_exports, monthly_gross_imports, on=["iso2", "commodity", "year", "month"])
 merged_data = pd.merge(merged_data, monthly_production, on=["iso2", "commodity", "year", "month"])
+
+# Calculate net imports (gross imports - gross exports)
 merged_data["net_imports_m3"] = merged_data["gross_imports_m3"] - merged_data["gross_exports_m3"]
+
+# Calculate consumption (production + net imports)
 merged_data["consumption_m3"] = merged_data["production_m3"] + merged_data["net_imports_m3"]
+
+# Latest datapoints are from first of May. Ignoring data from this day since the task is
+# to estimate monthly consumption and this amount of data is not enough to estimate
+# consumption for the whole of May.
+merged_data = merged_data[merged_data["month"] < 5]
+
+# Get a suitable subset of columns and export data to a new csv
 merged_data["country"] = merged_data["iso2"].apply(lambda iso: iso_country_dict[iso])
-
-output_data = merged_data[["iso2", "country", "net_imports_m3", "production_m3", "consumption_m3"]]
-
+output_data = merged_data[["iso2", "country", "year", "month", "commodity", "net_imports_m3", "production_m3", "consumption_m3"]]
 output_data.to_csv("processed_data.csv", sep=",", index=False)
