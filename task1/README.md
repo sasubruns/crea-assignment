@@ -38,3 +38,29 @@ Cons:
 
 ```External users of our platform should be able to set alerts for when potential fraudulent shipments are detected. Assuming the shipments are created in bulk and stored in a Postgres database query, design an infrastructure that would allow user to create / edit alert criteria and receive them when our system detects them. Please describe the setup in detail.```
 
+For this problem I'm making the assumption that a front-end UI that enables users to edit criteria is already in place, since this task is about infrastructure. I'm also not very experienced in front-end development, so describing how to build such a UI would require some guesswork on my part. Hopefully you can forgive me.
+
+For both possible solutions, alert criteria setup by each user should be stored in a database table. Let's imagine a scenario where the user can customize a minimum and maximum shipment size and a destination country that should trigger an alert. The alert criteria table will have the following schema:
+
+```(user_id, min_shipment_size, max_shipment_size, destination)```
+
+Multiple rows per user are possible in case the user wants to setup alerts for multiple different types of shipments.
+
+### Option 1: Run batch jobs that send alerts
+
+In this scenario, alerts are triggered by batch jobs that run on a schedule (e.g. every 20 minutes). These jobs will maintain information on which data is new (and thus not yet investigated for alerts) by storing the timestamp of the newest data point in the last batch. Data not yet been received by an alert job will be picked up by the next one.
+
+The job starts by running an SQL query that joins the latest batch with the table containing the alert criteria for each user. If we use the example schema imagined earlier, the SQL query would look something like:
+
+```sql
+SELECT criteria.user_id,
+    shipments.shipment_id
+FROM shipments
+INNER JOIN user_alert_criteria AS criteria
+ON (
+    shipments.destination_country = criteria.destination
+    AND shipments.shipment_size BETWEEN criteria.min_shipment_size AND criteria.max_shipment_size
+);
+```
+
+I haven't tested this query in PostgreSQL so it might have some syntax errors, but hopefully the idea is clear enough.
