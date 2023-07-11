@@ -46,6 +46,11 @@ For both possible solutions, alert criteria setup by each user should be stored 
 
 Multiple rows per user are possible in case the user wants to setup alerts for multiple different types of shipments.
 
+How you want to alert the users is up to you (or them), here are two simple possibilities:
+
+- Email alerts can be sent either with a third-party email service (such as SendGrid, Mailgun or Mailjet) or a custom email server running in the cloud
+- Alerts can be sent to the UI. In this case the alerts need to be stored in the database and the front-end should fetch the alerts for each user from whenever it's loaded.
+
 ### Option 1: Run batch jobs that send alerts
 
 In this scenario, alerts are triggered by batch jobs that run on a schedule (e.g. every 20 minutes). These jobs will maintain information on which data is new (and thus not yet investigated for alerts) by storing the timestamp of the newest data point in the last batch. Data not yet been received by an alert job will be picked up by the next one.
@@ -63,4 +68,25 @@ ON (
 );
 ```
 
-I haven't tested this query in PostgreSQL so it might have some syntax errors, but hopefully the idea is clear enough.
+I haven't tested this query in PostgreSQL so it might have some syntax errors, but hopefully the idea is clear enough. Of course the alert criteria should be much more complex, but this logic is easy to extend for such purposes. After running this query for the latest batch of shipments, the job has received data on which users should be alerted about which shipments, and can simply trigger these alerts or store this data in the database for the front-end.
+
+This batch job is so simple that I imagine it could be run as a small Python script in either a serverless service like Cloud Run (which makes scheduling easy), or a more traditional VM instance (in which case scheduling could be performed using cron or a similar tool). Most ETL tools are also suitable for this job if such tools are already in use in the organization.
+
+Pros:
+- Simple infrastructure
+- Can easily handle large amounts of both shipments and alert criteria from the get-go since the only performance bottleneck is the SQL join
+
+Cons:
+- Alerts are not real time. In the worst scenario the lag for alerts is equal to the time between job runs. Not a very big concern if jobs are scheduled often, e.g. every 15 minutes.
+
+### Option 2: Trigger alert screening from the API
+
+For this option, all shipments should be loaded into the database using the API. Whenever the API receives a new batch of shipments, the batch will be screened for alert criteria matches (in a similar fashion to Option #1) either directly by the API or a separate service/API. This approach is real-time, so users will receive alerts instantly, but the API has to trigger this process for any amount of data it receives, which could increase complexity if data is sent to the API very often.
+
+Pros:
+- Instant/real-time alerting
+- If the API handles everything, no setup of any separate infrastucture is required
+
+Cons:
+- API might get clogged up performance wise, which will decrease it's ability to receive requests and respond to them.
+- If the alert screening is delegated to a separate service, setup will be more difficult since essentially a separate API needs to be developed for this task.
