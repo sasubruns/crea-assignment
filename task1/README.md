@@ -40,7 +40,7 @@ Cons:
 
 For this problem I'm making the assumption that a front-end UI that enables users to edit criteria is already in place, since this task is about infrastructure. I'm also not very experienced in front-end development, so describing how to build such a UI would require some guesswork on my part. Hopefully you can forgive me.
 
-For both possible solutions, alert criteria setup by each user should be stored in a database table. Let's imagine a scenario where the user can customize a minimum and maximum shipment size and a destination country that should trigger an alert. The alert criteria table will have the following schema:
+For both possible solutions, alert criteria that users have setup should be stored in a database table. Let's imagine a scenario where the user can customize a minimum and maximum shipment size and a destination country that should trigger an alert. The alert criteria table will have the following schema:
 
 ```(user_id, min_shipment_size, max_shipment_size, destination)```
 
