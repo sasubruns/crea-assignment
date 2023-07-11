@@ -48,8 +48,8 @@ Multiple rows per user are possible in case the user wants to setup alerts for m
 
 How you want to alert the users is up to you (or them), here are two simple possibilities:
 
-- Email alerts can be sent either with a third-party email service (such as SendGrid, Mailgun or Mailjet) or a custom email server running in the cloud
-- Alerts can be sent to the UI. In this case the alerts need to be stored in the database and the front-end should fetch the alerts for each user from whenever it's loaded.
+- Email alerts can be sent either with a third-party email service (such as SendGrid, Mailgun or Mailjet) or a custom email server running in the cloud.
+- Alerts can be sent to the UI. In this case the alerts need to be stored in the database and the front-end should fetch the alerts for each user whenever it's loaded.
 
 ### Option 1: Run batch jobs that send alerts
 
