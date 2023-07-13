@@ -63,7 +63,7 @@ SELECT criteria.user_id,
 FROM (
     SELECT * FROM shipments
     WHERE shipment_timestamp > last_alert_job_timestamp
-)
+) AS shipments
 INNER JOIN user_alert_criteria AS criteria
 ON (
     shipments.destination_country = criteria.destination
