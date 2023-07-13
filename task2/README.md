@@ -8,7 +8,7 @@ The output_file should have the .csv extension.
 
 ### Scraping methods
 
-The data is scraped from three separate web sources. Each request was constructed by visiting those web sources using a standard web browser first, and cloning request headers from the browser. This method is probably not very reliable or resilient to changes in the underlying API. I am also unsure whether sending these requests from a computer other than mine will work. Hopefully the CLI still works on your end nevertheless.
+The data is scraped from three separate web sources. Each request was constructed by visiting those web sources using a standard web browser first, and cloning request headers from the browser. This method is probably not very reliable or resilient to changes in the underlying API. Some of the headers might contain temporary values that will expire (like the &AUTH argument in urals.py). I am also unsure whether sending these requests from a computer other than mine will work. Hopefully the CLI still works on your end nevertheless.
 
 ### Data
 
